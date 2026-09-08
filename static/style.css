@@ -62,9 +62,7 @@ a { color: var(--accent); }
     height: auto;
 }
 
-html[data-theme="dark"] .brand-logo {
-    filter: brightness(0) invert(1);
-}
+
 
 .search-form {
     display: flex;
@@ -552,3 +550,8 @@ html[data-theme="dark"] :focus-visible {
     outline: 2px solid var(--accent);
     outline-offset: 3px;
 }
+
+/* Use the original colors in light mode and a detailed color variant in dark mode. */
+.brand-logo-dark { display: none; }
+html[data-theme="dark"] .brand-logo-light { display: none; }
+html[data-theme="dark"] .brand-logo-dark { display: block; filter: none; }

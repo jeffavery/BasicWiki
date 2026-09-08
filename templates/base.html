@@ -5,13 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <script src="{{ url_for('static', filename='theme.js') }}"></script>
     <title>{% block title %}BasicWiki{% endblock %}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css', v='color-dark-logo-3') }}">
 </head>
 <body>
 <header class="topbar">
     <div class="shell topbar-inner">
         <a class="brand" href="{{ url_for('home') }}">
-            <img class="brand-logo" src="{{ url_for('static', filename='basicwiki-logo.png', v='horizontal') }}" alt="BasicWiki" width="2168" height="725">
+            <img class="brand-logo brand-logo-light" src="{{ url_for('static', filename='basicwiki-logo.png', v='horizontal') }}" alt="BasicWiki" width="2168" height="725">
+            <img class="brand-logo brand-logo-dark" src="{{ url_for('static', filename='basicwiki-logo-dark.png', v='horizontal') }}" alt="BasicWiki" width="2168" height="725">
         </a>
         <form class="search-form" action="{{ url_for('search') }}" method="get">
             <input type="search" name="q" value="{{ request.args.get('q','') }}" placeholder="Search the wiki">
