@@ -62,9 +62,8 @@ a { color: var(--accent); }
     height: auto;
 }
 
-html[data-theme="dark"] .brand {
-    background: #fff;
-    border-radius: 8px;
+html[data-theme="dark"] .brand-logo {
+    filter: brightness(0) invert(1);
 }
 
 .search-form {
