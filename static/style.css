@@ -285,9 +285,13 @@ a { color: var(--accent); }
     font-family: Consolas, "Courier New", monospace;
 }
 
-/* Preserve intentional blank lines saved by the WYSIWYG editor. */
-.document p:empty,
-.document p:has(> br:only-child) {
+/*
+ * Treat editor paragraphs as lines: Enter starts the next line and an
+ * intentionally empty paragraph contributes exactly one blank line.
+ */
+.editor p,
+.document p {
+    margin: 0;
     min-height: 1.55em;
 }
 
