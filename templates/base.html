@@ -10,7 +10,9 @@
 <body>
 <header class="topbar">
     <div class="shell topbar-inner">
-        <a class="brand" href="{{ url_for('home') }}">BasicWiki</a>
+        <a class="brand" href="{{ url_for('home') }}">
+            <img class="brand-logo" src="{{ url_for('static', filename='basicwiki-logo.png') }}" alt="BasicWiki" width="1254" height="1254">
+        </a>
         <form class="search-form" action="{{ url_for('search') }}" method="get">
             <input type="search" name="q" value="{{ request.args.get('q','') }}" placeholder="Search the wiki">
             <button type="submit">Search</button>
