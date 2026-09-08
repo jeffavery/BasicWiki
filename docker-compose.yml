@@ -1,0 +1,9 @@
+services:
+  basicwiki:
+    build: .
+    container_name: basicwiki
+    ports:
+      - "8085:8000"
+    volumes:
+      - ./data:/data
+    restart: unless-stopped

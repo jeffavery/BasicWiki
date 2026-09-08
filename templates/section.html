@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}{{ section['name'] }} · BasicWiki{% endblock %}
+
+{% block content %}
+<div class="breadcrumb"><a href="{{ url_for('home') }}">Home</a> / {{ section['name'] }}</div>
+
+<div class="section-heading">
+    <div>
+        <h1>{{ section['name'] }}</h1>
+        <p>{{ section['description'] }}</p>
+    </div>
+    <a class="button primary" href="{{ url_for('new_page', section=section['slug']) }}">New {{ section['name'] }} Page</a>
+</div>
+
+{% if pages %}
+<div class="page-list">
+    {% for page in pages %}
+    <a class="page-row" href="{{ url_for('page', slug=page['slug']) }}">
+        <div>
+            <strong>{{ page['title'] }}</strong>
+            {% if page['content_text'] %}
+            <span>{{ page['content_text'][:140] }}{% if page['content_text']|length > 140 %}…{% endif %}</span>
+            {% endif %}
+        </div>
+        <time>{{ page['updated_at'].replace('T',' ') }}</time>
+    </a>
+    {% endfor %}
+</div>
+{% else %}
+<div class="empty">
+    No pages in this section yet.
+</div>
+{% endif %}
+{% endblock %}

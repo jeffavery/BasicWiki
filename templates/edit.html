@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}{% if page %}Edit {{ page['title'] }}{% else %}New Page{% endif %} · BasicWiki{% endblock %}
+
+{% block content %}
+<div class="breadcrumb"><a href="{{ url_for('home') }}">Home</a> / {% if page %}Edit Page{% else %}New Page{% endif %}</div>
+
+<h1>{% if page %}Edit Page{% else %}New Page{% endif %}</h1>
+
+{% if error %}
+<div class="error">{{ error }}</div>
+{% endif %}
+
+<form method="post" id="page-form" class="edit-form">
+    <div class="form-row">
+        <label>
+            Title
+            <input type="text" name="title" value="{{ page['title'] if page else '' }}" required autofocus>
+        </label>
+
+        <label>
+            Section
+            <select name="section_id" required>
+                <option value="">Choose a section</option>
+                {% for section in sections %}
+                <option value="{{ section['id'] }}"
+                    {% if page and page['section_id'] == section['id'] %}selected
+                    {% elif not page and selected_section == section['slug'] %}selected{% endif %}>
+                    {{ section['name'] }}
+                </option>
+                {% endfor %}
+            </select>
+        </label>
+    </div>
+
+    <div class="editor-wrap">
+        <div class="toolbar">
+            <button type="button" data-command="bold"><strong>B</strong></button>
+            <button type="button" data-command="italic"><em>I</em></button>
+            <button type="button" data-block="h2">Heading</button>
+            <button type="button" data-block="p">Normal</button>
+            <button type="button" data-command="insertUnorderedList">Bullets</button>
+            <button type="button" id="link-btn">Link</button>
+            <button type="button" id="wiki-link-btn">Wiki Link</button>
+            <button type="button" id="code-btn">Code Block</button>
+        </div>
+
+        <div id="editor" class="editor" contenteditable="true" spellcheck="true">{{ page['content_html']|safe if page else '' }}</div>
+        <input type="hidden" name="content_html" id="content_html">
+    </div>
+
+    <div class="form-actions">
+        {% if page %}
+        <a class="button" href="{{ url_for('page', slug=page['slug']) }}">Cancel</a>
+        {% else %}
+        <a class="button" href="{{ url_for('home') }}">Cancel</a>
+        {% endif %}
+        <button class="button primary" type="submit">Save Page</button>
+    </div>
+</form>
+
+<dialog id="wiki-link-dialog">
+    <form method="dialog" class="dialog-box">
+        <h2>Link to another wiki page</h2>
+        <input id="wiki-link-search" type="search" placeholder="Search page titles">
+        <div id="wiki-link-results" class="wiki-link-results"></div>
+        <button class="button" value="cancel">Cancel</button>
+    </form>
+</dialog>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='editor.js') }}"></script>
+{% endblock %}

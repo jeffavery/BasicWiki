@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}{{ page['title'] }} · BasicWiki{% endblock %}
+
+{% block content %}
+<div class="breadcrumb">
+    <a href="{{ url_for('home') }}">Home</a> /
+    <a href="{{ url_for('section', slug=page['section_slug']) }}">{{ page['section_name'] }}</a> /
+    {{ page['title'] }}
+</div>
+
+<div class="page-header">
+    <div>
+        <h1>{{ page['title'] }}</h1>
+        <p class="meta">Updated {{ page['updated_at'].replace('T',' ') }}</p>
+    </div>
+
+    <div class="page-actions">
+        <a class="button" href="{{ url_for('edit_page', slug=page['slug']) }}">Edit</a>
+
+        <form action="{{ url_for('delete_page', slug=page['slug']) }}"
+              method="post"
+              onsubmit="return confirm('Are you sure you want to permanently delete this page?');">
+            <button class="button danger" type="submit">Delete</button>
+        </form>
+    </div>
+</div>
+
+<article class="document">
+    {% if page['content_html'] %}
+        {{ page['content_html']|safe }}
+    {% else %}
+        <p class="muted">This page is empty.</p>
+    {% endif %}
+</article>
+
+<div class="bottom-page-actions">
+    <a class="button" href="{{ url_for('edit_page', slug=page['slug']) }}">Edit Page</a>
+
+    <form action="{{ url_for('delete_page', slug=page['slug']) }}"
+          method="post"
+          onsubmit="return confirm('Are you sure you want to permanently delete this page? This cannot be undone.');">
+        <button class="button danger" type="submit">Delete Page</button>
+    </form>
+</div>
+{% endblock %}

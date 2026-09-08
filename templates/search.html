@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Search · BasicWiki{% endblock %}
+
+{% block content %}
+<div class="breadcrumb"><a href="{{ url_for('home') }}">Home</a> / Search</div>
+
+<h1>Search</h1>
+
+{% if q %}
+<p>Results for <strong>{{ q }}</strong></p>
+
+{% if results %}
+<div class="page-list">
+    {% for page in results %}
+    <a class="page-row" href="{{ url_for('page', slug=page['slug']) }}">
+        <div>
+            <strong>{{ page['title'] }}</strong>
+            <span>{{ page['section_name'] }}{% if page['content_text'] %} · {{ page['content_text'][:170] }}{% if page['content_text']|length > 170 %}…{% endif %}{% endif %}</span>
+        </div>
+        <time>{{ page['updated_at'].replace('T',' ') }}</time>
+    </a>
+    {% endfor %}
+</div>
+{% else %}
+<div class="empty">No matching pages found.</div>
+{% endif %}
+
+{% else %}
+<div class="empty">Enter a search term above.</div>
+{% endif %}
+{% endblock %}

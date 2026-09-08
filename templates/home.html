@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}BasicWiki{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <h1>Avery's Wiki</h1>
+    <p>Systems, projects, troubleshooting, and household notes.</p>
+</section>
+
+<div class="section-grid">
+    {% for section in sections %}
+    <a class="section-card" href="{{ url_for('section', slug=section['slug']) }}">
+        <h2>{{ section['name'] }}</h2>
+        <p>{{ section['description'] }}</p>
+        <span>{{ section['page_count'] }} page{% if section['page_count'] != 1 %}s{% endif %}</span>
+    </a>
+    {% endfor %}
+</div>
+
+<section class="recent">
+    <div class="section-heading">
+        <h2>Recently Updated</h2>
+        <a href="{{ url_for('new_page') }}">Create a page</a>
+    </div>
+
+    {% if recent %}
+    <div class="page-list">
+        {% for page in recent %}
+        <a class="page-row" href="{{ url_for('page', slug=page['slug']) }}">
+            <div>
+                <strong>{{ page['title'] }}</strong>
+                <span>{{ page['section_name'] }}</span>
+            </div>
+            <time>{{ page['updated_at'].replace('T', ' ') }}</time>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty">
+        No pages yet. Create the first one.
+    </div>
+    {% endif %}
+</section>
+{% endblock %}
