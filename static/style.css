@@ -285,6 +285,12 @@ a { color: var(--accent); }
     font-family: Consolas, "Courier New", monospace;
 }
 
+/* Preserve intentional blank lines saved by the WYSIWYG editor. */
+.document p:empty,
+.document p:has(> br:only-child) {
+    min-height: 1.55em;
+}
+
 .edit-form { margin-bottom: 44px; }
 
 .form-row {

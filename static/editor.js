@@ -150,6 +150,32 @@
         }
     }
 
+    /*
+     * Browsers do not agree on the block created by Enter in a
+     * contenteditable area. Some create DIVs, but the server's HTML
+     * allowlist intentionally keeps wiki content to semantic paragraphs.
+     * Normalize only top-level editor DIVs so an empty line remains
+     * <p><br></p> after sanitizing and rendering.
+     */
+    function normalizeParagraphs() {
+        Array.from(editor.children).forEach((element) => {
+            if (element.tagName !== "DIV") return;
+            if (element.querySelector("p, div, h1, h2, h3, ul, ol, pre, blockquote, hr")) return;
+
+            const paragraph = document.createElement("p");
+
+            while (element.firstChild) {
+                paragraph.appendChild(element.firstChild);
+            }
+
+            if (!paragraph.hasChildNodes()) {
+                paragraph.innerHTML = "<br>";
+            }
+
+            element.replaceWith(paragraph);
+        });
+    }
+
     ensureTrailingParagraph();
 
     /*
@@ -262,6 +288,7 @@
      * Save exactly what is visible in the editor.
      */
     form.addEventListener("submit", () => {
+        normalizeParagraphs();
         ensureTrailingParagraph();
         hidden.value = editor.innerHTML;
     });
