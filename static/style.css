@@ -439,3 +439,96 @@ dialog::backdrop {
 .bottom-page-actions form {
     margin: 0;
 }
+
+/* BasicWiki theme toggle */
+.topbar-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.topbar-actions .button {
+    white-space: nowrap;
+}
+
+html[data-theme="dark"] {
+    --bg: #111827;
+    --panel: #1f2937;
+    --text: #e5e7eb;
+    --muted: #a8b3c4;
+    --border: #435168;
+    --accent: #93c5fd;
+    --accent-dark: #1d4ed8;
+    --shadow: 0 4px 18px rgba(0, 0, 0, .2);
+}
+
+html[data-theme="dark"] .topbar,
+html[data-theme="dark"] .button,
+html[data-theme="dark"] .search-form input,
+html[data-theme="dark"] .form-row input,
+html[data-theme="dark"] .form-row select,
+html[data-theme="dark"] .dialog-box input,
+html[data-theme="dark"] .editor-wrap,
+html[data-theme="dark"] .empty,
+html[data-theme="dark"] dialog,
+html[data-theme="dark"] .wiki-link-item {
+    background: var(--panel);
+    color: var(--text);
+}
+
+html[data-theme="dark"] .button.primary,
+html[data-theme="dark"] .search-form button {
+    background: #2563eb;
+    border-color: #2563eb;
+    color: #fff;
+}
+
+html[data-theme="dark"] .button.primary:hover,
+html[data-theme="dark"] .search-form button:hover {
+    background: #1d4ed8;
+}
+
+html[data-theme="dark"] .toolbar {
+    background: #182233;
+}
+
+html[data-theme="dark"] .toolbar button {
+    background: var(--panel);
+    color: var(--text);
+    border-color: var(--border);
+}
+
+html[data-theme="dark"] .page-row:hover,
+html[data-theme="dark"] .wiki-link-item:hover,
+html[data-theme="dark"] .toolbar button:hover {
+    background: #2c3a50;
+}
+
+html[data-theme="dark"] .error {
+    background: #3b2028;
+    color: #fecaca;
+    border-color: #99515e;
+}
+
+html[data-theme="dark"] .button.danger {
+    color: #fca5a5;
+    border-color: #99515e;
+}
+
+html[data-theme="dark"] input::placeholder,
+html[data-theme="dark"] .editor:empty::before {
+    color: var(--muted);
+}
+
+html[data-theme="dark"] .document pre,
+html[data-theme="dark"] .editor pre {
+    background: #0b1120;
+    color: #f3f4f6;
+}
+
+html[data-theme="dark"] :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+}

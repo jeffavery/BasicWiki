@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}New Section · BasicWiki{% endblock %}
+
+{% block content %}
+<div class="breadcrumb"><a href="{{ url_for('home') }}">Home</a> / New Section</div>
+
+<h1>New Section</h1>
+
+{% if error %}
+<div class="error" role="alert">{{ error }}</div>
+{% endif %}
+
+<form method="post" action="{{ url_for('new_section') }}" class="edit-form">
+    <div class="form-row">
+        <label>
+            Section Name
+            <input type="text" name="name" value="{{ name }}" required autofocus>
+        </label>
+
+        <label>
+            Description (optional)
+            <input type="text" name="description" value="{{ description }}">
+        </label>
+    </div>
+
+    <div class="form-actions">
+        <a class="button" href="{{ url_for('home') }}">Cancel</a>
+        <button class="button primary" type="submit">Create Section</button>
+    </div>
+</form>
+{% endblock %}

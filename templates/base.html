@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="{{ url_for('static', filename='theme.js') }}"></script>
     <title>{% block title %}BasicWiki{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
@@ -14,7 +15,13 @@
             <input type="search" name="q" value="{{ request.args.get('q','') }}" placeholder="Search the wiki">
             <button type="submit">Search</button>
         </form>
-        <a class="button primary" href="{{ url_for('new_page') }}">New Page</a>
+        <div class="topbar-actions">
+            <button class="button" id="theme-toggle" type="button"
+                    aria-label="Toggle dark mode" aria-pressed="false">
+                Dark mode
+            </button>
+            <a class="button primary" href="{{ url_for('new_page') }}">New Page</a>
+        </div>
     </div>
 </header>
 

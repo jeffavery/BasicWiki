@@ -3,8 +3,13 @@
 
 {% block content %}
 <section class="hero">
-    <h1>Avery's Wiki</h1>
-    <p>Systems, projects, troubleshooting, and household notes.</p>
+    <div class="section-heading">
+        <div>
+            <h1>Avery's Wiki</h1>
+            <p>Systems, projects, troubleshooting, and household notes.</p>
+        </div>
+        <a class="button primary" href="{{ url_for('new_section') }}">New Section</a>
+    </div>
 </section>
 
 <div class="section-grid">

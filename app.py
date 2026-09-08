@@ -161,6 +161,43 @@ def home():
     return render_template("home.html", sections=sections, recent=recent)
 
 
+@app.route("/sections/new", methods=["GET", "POST"])
+def new_section():
+    name = request.form.get("name", "").strip()
+    description = request.form.get("description", "").strip()
+    error = None
+
+    if request.method == "POST":
+        if not name:
+            error = "Section name is required."
+        else:
+            db = get_db()
+            # Keep slug selection and ordering safe across simultaneous requests.
+            with db:
+                db.execute("BEGIN IMMEDIATE")
+                base = re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-") or "section"
+                slug = base
+                suffix = 2
+                while db.execute(
+                    "SELECT id FROM sections WHERE slug = ?", (slug,)
+                ).fetchone() is not None:
+                    slug = f"{base}-{suffix}"
+                    suffix += 1
+
+                sort_order = db.execute(
+                    "SELECT COALESCE(MAX(sort_order), 0) + 1 FROM sections"
+                ).fetchone()[0]
+                db.execute(
+                    "INSERT INTO sections (slug, name, description, sort_order) VALUES (?, ?, ?, ?)",
+                    (slug, name, description, sort_order),
+                )
+            return redirect(url_for("section", slug=slug))
+
+    return render_template(
+        "new_section.html", name=name, description=description, error=error
+    )
+
+
 @app.route("/section/<slug>")
 def section(slug):
     db = get_db()
