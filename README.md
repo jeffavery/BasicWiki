@@ -1,4 +1,4 @@
-![Project Header Banner](images/header.png)
+![Project Header Banner](header.png)
 # BasicWiki
 
 BasicWiki is a deliberately small, self-hosted personal knowledge base for home-lab, shop, household, and technical notes.
