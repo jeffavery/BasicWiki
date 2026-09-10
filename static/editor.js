@@ -44,22 +44,80 @@
         });
     });
 
-    /*
-     * External web link.
-     */
-    document.getElementById("link-btn").addEventListener("click", () => {
-        const url = window.prompt("Enter the web address:");
+    /* External links and links to uploaded documents/media. */
+    const linkDialog = document.getElementById("link-dialog");
+    const linkUrl = document.getElementById("link-url");
+    const fileInput = document.getElementById("file-input");
+    const fileResults = document.getElementById("uploaded-file-results");
+    const fileStatus = document.getElementById("file-upload-status");
+    let linkRange = null;
 
-        if (!url) return;
-
+    function applyLink(url, fallbackText) {
+        linkDialog.close();
         editor.focus();
+        const selection = window.getSelection();
+        selection.removeAllRanges();
+        if (linkRange && editor.contains(linkRange.commonAncestorContainer)) selection.addRange(linkRange);
+        if (selection.rangeCount && selection.toString()) {
+            document.execCommand("createLink", false, url);
+        } else {
+            document.execCommand("insertHTML", false, `<a href="${escapeHtml(url)}">${escapeHtml(fallbackText || url)}</a>`);
+        }
+    }
 
-        document.execCommand(
-            "createLink",
-            false,
-            url
-        );
+    document.getElementById("link-btn").addEventListener("click", async () => {
+        const selection = window.getSelection();
+        linkRange = selection.rangeCount && editor.contains(selection.anchorNode)
+            ? selection.getRangeAt(0).cloneRange() : null;
+        linkUrl.value = "";
+        fileStatus.textContent = "";
+        linkDialog.showModal();
+        await loadFiles();
+        linkUrl.focus();
     });
+
+    document.getElementById("apply-link-btn").addEventListener("click", () => {
+        if (linkUrl.value) applyLink(linkUrl.value, linkUrl.value);
+    });
+
+    document.getElementById("upload-file-btn").addEventListener("click", () => fileInput.click());
+
+    fileInput.addEventListener("change", async () => {
+        const file = fileInput.files[0];
+        if (!file) return;
+        fileStatus.textContent = "Uploading file...";
+        const body = new FormData();
+        body.append("file", file);
+        try {
+            const response = await fetch("/api/uploads/files", { method: "POST", body });
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.error || "File upload failed.");
+            fileStatus.textContent = "File uploaded. Select it below.";
+            await loadFiles();
+        } catch (error) {
+            fileStatus.textContent = error.message;
+        } finally {
+            fileInput.value = "";
+        }
+    });
+
+    async function loadFiles() {
+        const response = await fetch("/api/uploads/files");
+        const result = await response.json();
+        fileResults.innerHTML = "";
+        if (!result.length) {
+            fileResults.innerHTML = "<p class='muted'>No files uploaded yet.</p>";
+            return;
+        }
+        result.forEach((file) => {
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = "wiki-link-item";
+            button.textContent = file.name;
+            button.addEventListener("click", () => applyLink(file.url, file.name));
+            fileResults.appendChild(button);
+        });
+    }
 
     /*
      * CODE BLOCK

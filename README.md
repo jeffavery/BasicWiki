@@ -14,7 +14,8 @@ It is designed for people who want simple web pages and a basic WYSIWYG editor w
   - Shop
   - Household
 - Simple WYSIWYG-style editor
-- Bold, italic, headings, bullet lists, links, internal wiki links, image uploads, and code blocks
+- Bold, italic, headings, bullet lists, links, internal wiki links, image and file uploads, and code blocks
+- Persistent document, audio, and video uploads with original filenames
 - Full-text search across page titles and page content
 - SQLite storage
 - Docker deployment

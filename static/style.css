@@ -435,6 +435,9 @@ dialog::backdrop {
 }
 
 .dialog-box h2 { margin-top: 0; }
+.dialog-box hr { margin: 20px 0; border: 0; border-top: 1px solid var(--border); }
+.dialog-box label { display: block; margin-bottom: 10px; font-weight: 700; }
+.dialog-status { min-height: 1.5em; margin-top: 10px; color: var(--muted); }
 
 .wiki-link-results {
     display: flex;

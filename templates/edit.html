@@ -70,8 +70,25 @@
         <button class="button" value="cancel">Cancel</button>
     </form>
 </dialog>
+
+<dialog id="link-dialog">
+    <form method="dialog" class="dialog-box">
+        <h2>Add a link</h2>
+        <label>Web address
+            <input id="link-url" type="url" placeholder="https://example.com">
+        </label>
+        <button class="button primary" id="apply-link-btn" type="button">Apply Link</button>
+        <hr>
+        <h3>Uploaded files</h3>
+        <input id="file-input" type="file" accept=".pdf,.txt,.md,.rtf,.csv,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.odt,.ods,.odp,.epub,audio/*,video/*" hidden>
+        <button class="button" id="upload-file-btn" type="button">Upload a File</button>
+        <div id="file-upload-status" class="dialog-status" role="status" aria-live="polite"></div>
+        <div id="uploaded-file-results" class="wiki-link-results"></div>
+        <button class="button" value="cancel">Cancel</button>
+    </form>
+</dialog>
 {% endblock %}
 
 {% block scripts %}
-<script src="{{ url_for('static', filename='editor.js', v='image-uploads-1') }}"></script>
+<script src="{{ url_for('static', filename='editor.js', v='file-uploads-1') }}"></script>
 {% endblock %}

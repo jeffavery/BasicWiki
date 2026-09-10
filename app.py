@@ -2,6 +2,7 @@ import os
 import re
 import secrets
 import sqlite3
+import unicodedata
 from datetime import datetime
 from html import unescape
 
@@ -12,10 +13,9 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.environ.get("BASICWIKI_DATA_DIR", os.path.join(BASE_DIR, "data"))
 DB_PATH = os.path.join(DATA_DIR, "wiki.db")
 UPLOAD_DIR = os.path.join(DATA_DIR, "uploads")
-MAX_UPLOAD_BYTES = 15 * 1024 * 1024
+MAX_IMAGE_BYTES = 15 * 1024 * 1024
 
 app = Flask(__name__)
-app.config["MAX_CONTENT_LENGTH"] = MAX_UPLOAD_BYTES
 
 ALLOWED_TAGS = [
     "p", "br", "strong", "b", "em", "i", "u",
@@ -42,6 +42,30 @@ IMAGE_TYPES = {
     "png": "image/png",
     "gif": "image/gif",
     "webp": "image/webp",
+}
+
+FILE_TYPES = {
+    # Documents and common office formats (active web/executable formats omitted).
+    "pdf": "application/pdf", "txt": "text/plain", "md": "text/markdown",
+    "rtf": "application/rtf", "csv": "text/csv",
+    "doc": "application/msword",
+    "docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "xls": "application/vnd.ms-excel",
+    "xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "ppt": "application/vnd.ms-powerpoint",
+    "pptx": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+    "odt": "application/vnd.oasis.opendocument.text",
+    "ods": "application/vnd.oasis.opendocument.spreadsheet",
+    "odp": "application/vnd.oasis.opendocument.presentation",
+    "epub": "application/epub+zip",
+    # Audio.
+    "mp3": "audio/mpeg", "m4a": "audio/mp4", "aac": "audio/aac",
+    "wav": "audio/wav", "flac": "audio/flac", "ogg": "audio/ogg",
+    "oga": "audio/ogg", "opus": "audio/ogg",
+    # Video.
+    "mp4": "video/mp4", "m4v": "video/mp4", "mov": "video/quicktime",
+    "webm": "video/webm", "ogv": "video/ogg", "avi": "video/x-msvideo",
+    "mkv": "video/x-matroska", "mpeg": "video/mpeg", "mpg": "video/mpeg",
 }
 
 DEFAULT_SECTIONS = [
@@ -160,6 +184,18 @@ def detect_image_type(header):
     if len(header) >= 12 and header[:4] == b"RIFF" and header[8:12] == b"WEBP":
         return "webp"
     return None
+
+
+def safe_original_filename(value):
+    value = unicodedata.normalize("NFC", value or "").strip()
+    if (
+        not value or value in (".", "..") or len(value) > 180
+        or "/" in value or "\\" in value
+        or any(ord(character) < 32 for character in value)
+    ):
+        return None
+    extension = value.rsplit(".", 1)[-1].lower() if "." in value else ""
+    return value if extension in FILE_TYPES else None
 
 
 @app.before_request
@@ -424,15 +460,19 @@ def upload_image():
     if uploaded is None or not uploaded.filename:
         return jsonify(error="Choose an image to upload."), 400
 
-    header = uploaded.stream.read(16)
-    uploaded.stream.seek(0)
+    contents = uploaded.stream.read(MAX_IMAGE_BYTES + 1)
+    if len(contents) > MAX_IMAGE_BYTES:
+        return jsonify(error="Image is too large. The maximum size is 15 MB."), 413
+
+    header = contents[:16]
     image_type = detect_image_type(header)
     if image_type is None:
         return jsonify(error="Only JPEG, PNG, GIF, and WEBP images are supported."), 415
 
     os.makedirs(UPLOAD_DIR, exist_ok=True)
     filename = f"{secrets.token_hex(16)}.{image_type}"
-    uploaded.save(os.path.join(UPLOAD_DIR, filename))
+    with open(os.path.join(UPLOAD_DIR, filename), "wb") as destination:
+        destination.write(contents)
 
     return jsonify(
         url=url_for("uploaded_image", filename=filename),
@@ -442,21 +482,42 @@ def upload_image():
 
 @app.get("/uploads/<filename>")
 def uploaded_image(filename):
-    if not re.fullmatch(r"[0-9a-f]{32}\.(?:jpg|png|gif|webp)", filename):
+    image_match = re.fullmatch(r"[0-9a-f]{32}\.(jpg|png|gif|webp)", filename)
+    safe_file = safe_original_filename(filename)
+    if not image_match and not safe_file:
         abort(404)
-    return send_from_directory(
-        UPLOAD_DIR,
-        filename,
-        mimetype=IMAGE_TYPES[filename.rsplit(".", 1)[1]],
-        max_age=86400,
+
+    extension = filename.rsplit(".", 1)[1].lower()
+    response = send_from_directory(
+        UPLOAD_DIR, filename, mimetype=(IMAGE_TYPES if image_match else FILE_TYPES)[extension],
+        as_attachment=not image_match and extension != "pdf" and not FILE_TYPES[extension].startswith(("audio/", "video/")),
+        download_name=filename, max_age=86400,
     )
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    return response
 
 
-@app.errorhandler(413)
-def upload_too_large(_error):
-    if request.path == "/api/uploads/images":
-        return jsonify(error="Image is too large. The maximum size is 15 MB."), 413
-    return "Request is too large.", 413
+@app.route("/api/uploads/files", methods=["GET", "POST"])
+def uploaded_files():
+    os.makedirs(UPLOAD_DIR, exist_ok=True)
+
+    if request.method == "POST":
+        uploaded = request.files.get("file")
+        filename = safe_original_filename(uploaded.filename if uploaded else "")
+        if filename is None:
+            return jsonify(error="That file type is not supported or its filename is unsafe."), 415
+
+        path = os.path.join(UPLOAD_DIR, filename)
+        if os.path.exists(path):
+            return jsonify(error="A file with that name already exists."), 409
+        uploaded.save(path)
+        return jsonify(name=filename, url=url_for("uploaded_image", filename=filename)), 201
+
+    files = []
+    for filename in sorted(os.listdir(UPLOAD_DIR), key=str.casefold):
+        if safe_original_filename(filename) and os.path.isfile(os.path.join(UPLOAD_DIR, filename)):
+            files.append({"name": filename, "url": url_for("uploaded_image", filename=filename)})
+    return jsonify(files)
 
 
 if __name__ == "__main__":
