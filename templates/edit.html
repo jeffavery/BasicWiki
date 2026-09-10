@@ -41,8 +41,12 @@
             <button type="button" data-command="insertUnorderedList">Bullets</button>
             <button type="button" id="link-btn">Link</button>
             <button type="button" id="wiki-link-btn">Wiki Link</button>
+            <button type="button" id="image-btn">Image</button>
             <button type="button" id="code-btn">Code Block</button>
+            <input type="file" id="image-input" accept="image/jpeg,image/png,image/gif,image/webp" hidden>
         </div>
+
+        <div id="image-upload-status" class="upload-status" role="status" aria-live="polite"></div>
 
         <div id="editor" class="editor" contenteditable="true" spellcheck="true">{{ page['content_html']|safe if page else '' }}</div>
         <input type="hidden" name="content_html" id="content_html">
@@ -69,5 +73,5 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="{{ url_for('static', filename='editor.js') }}"></script>
+<script src="{{ url_for('static', filename='editor.js', v='image-uploads-1') }}"></script>
 {% endblock %}

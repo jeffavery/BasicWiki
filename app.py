@@ -1,26 +1,47 @@
 import os
 import re
+import secrets
 import sqlite3
 from datetime import datetime
 from html import unescape
 
 import bleach
-from flask import Flask, abort, g, jsonify, redirect, render_template, request, url_for
-from werkzeug.utils import secure_filename
+from flask import Flask, abort, g, jsonify, redirect, render_template, request, send_from_directory, url_for
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.environ.get("BASICWIKI_DATA_DIR", os.path.join(BASE_DIR, "data"))
 DB_PATH = os.path.join(DATA_DIR, "wiki.db")
+UPLOAD_DIR = os.path.join(DATA_DIR, "uploads")
+MAX_UPLOAD_BYTES = 15 * 1024 * 1024
 
 app = Flask(__name__)
+app.config["MAX_CONTENT_LENGTH"] = MAX_UPLOAD_BYTES
 
 ALLOWED_TAGS = [
     "p", "br", "strong", "b", "em", "i", "u",
     "h1", "h2", "h3", "ul", "ol", "li",
-    "a", "pre", "code", "blockquote", "hr"
+    "a", "img", "pre", "code", "blockquote", "hr"
 ]
+
+
+def allowed_image_attribute(tag, name, value):
+    if name in ("alt", "title"):
+        return True
+    if name == "src":
+        return bool(re.fullmatch(r"/uploads/[0-9a-f]{32}\.(?:jpg|png|gif|webp)", value))
+    return False
+
+
 ALLOWED_ATTRS = {
-    "a": ["href", "title", "target", "rel"]
+    "a": ["href", "title", "target", "rel"],
+    "img": allowed_image_attribute,
+}
+
+IMAGE_TYPES = {
+    "jpg": "image/jpeg",
+    "png": "image/png",
+    "gif": "image/gif",
+    "webp": "image/webp",
 }
 
 DEFAULT_SECTIONS = [
@@ -127,6 +148,18 @@ def html_to_text(value):
     value = re.sub(r"[ \t]+", " ", value)
     value = re.sub(r"\n\s*\n+", "\n", value)
     return value.strip()
+
+
+def detect_image_type(header):
+    if header.startswith(b"\xff\xd8\xff"):
+        return "jpg"
+    if header.startswith(b"\x89PNG\r\n\x1a\n"):
+        return "png"
+    if header.startswith((b"GIF87a", b"GIF89a")):
+        return "gif"
+    if len(header) >= 12 and header[:4] == b"RIFF" and header[8:12] == b"WEBP":
+        return "webp"
+    return None
 
 
 @app.before_request
@@ -383,6 +416,47 @@ def api_pages():
             "SELECT title, slug FROM pages ORDER BY title LIMIT 50"
         ).fetchall()
     return jsonify([{"title": r["title"], "url": f"/page/{r['slug']}"} for r in rows])
+
+
+@app.post("/api/uploads/images")
+def upload_image():
+    uploaded = request.files.get("image")
+    if uploaded is None or not uploaded.filename:
+        return jsonify(error="Choose an image to upload."), 400
+
+    header = uploaded.stream.read(16)
+    uploaded.stream.seek(0)
+    image_type = detect_image_type(header)
+    if image_type is None:
+        return jsonify(error="Only JPEG, PNG, GIF, and WEBP images are supported."), 415
+
+    os.makedirs(UPLOAD_DIR, exist_ok=True)
+    filename = f"{secrets.token_hex(16)}.{image_type}"
+    uploaded.save(os.path.join(UPLOAD_DIR, filename))
+
+    return jsonify(
+        url=url_for("uploaded_image", filename=filename),
+        filename=uploaded.filename,
+    ), 201
+
+
+@app.get("/uploads/<filename>")
+def uploaded_image(filename):
+    if not re.fullmatch(r"[0-9a-f]{32}\.(?:jpg|png|gif|webp)", filename):
+        abort(404)
+    return send_from_directory(
+        UPLOAD_DIR,
+        filename,
+        mimetype=IMAGE_TYPES[filename.rsplit(".", 1)[1]],
+        max_age=86400,
+    )
+
+
+@app.errorhandler(413)
+def upload_too_large(_error):
+    if request.path == "/api/uploads/images":
+        return jsonify(error="Image is too large. The maximum size is 15 MB."), 413
+    return "Request is too large.", 413
 
 
 if __name__ == "__main__":

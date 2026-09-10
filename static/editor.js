@@ -179,6 +179,75 @@
     ensureTrailingParagraph();
 
     /*
+     * Image uploads. Preserve the caret while the native file picker and
+     * upload are active, then insert the served image at that exact point.
+     */
+    const imageButton = document.getElementById("image-btn");
+    const imageInput = document.getElementById("image-input");
+    const uploadStatus = document.getElementById("image-upload-status");
+    let imageRange = null;
+
+    imageButton.addEventListener("click", () => {
+        const selection = window.getSelection();
+        if (selection.rangeCount && editor.contains(selection.anchorNode)) {
+            imageRange = selection.getRangeAt(0).cloneRange();
+        } else {
+            imageRange = null;
+        }
+        imageInput.click();
+    });
+
+    imageInput.addEventListener("change", async () => {
+        const file = imageInput.files[0];
+        if (!file) return;
+
+        imageButton.disabled = true;
+        uploadStatus.className = "upload-status active";
+        uploadStatus.textContent = "Uploading image...";
+
+        try {
+            const body = new FormData();
+            body.append("image", file);
+            const response = await fetch("/api/uploads/images", { method: "POST", body });
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.error || "Image upload failed.");
+
+            const image = document.createElement("img");
+            image.src = result.url;
+            image.alt = file.name.replace(/\.[^.]+$/, "");
+
+            editor.focus();
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            if (imageRange && editor.contains(imageRange.commonAncestorContainer)) {
+                selection.addRange(imageRange);
+            } else {
+                const range = document.createRange();
+                range.selectNodeContents(editor);
+                range.collapse(false);
+                selection.addRange(range);
+            }
+
+            const range = selection.getRangeAt(0);
+            range.deleteContents();
+            range.insertNode(image);
+            range.setStartAfter(image);
+            range.collapse(true);
+            selection.removeAllRanges();
+            selection.addRange(range);
+
+            uploadStatus.className = "upload-status active success";
+            uploadStatus.textContent = "Image uploaded and inserted.";
+        } catch (error) {
+            uploadStatus.className = "upload-status active error-text";
+            uploadStatus.textContent = error.message;
+        } finally {
+            imageButton.disabled = false;
+            imageInput.value = "";
+        }
+    });
+
+    /*
      * Internal wiki links.
      */
     const dialog =

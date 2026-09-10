@@ -14,7 +14,7 @@ It is designed for people who want simple web pages and a basic WYSIWYG editor w
   - Shop
   - Household
 - Simple WYSIWYG-style editor
-- Bold, italic, headings, bullet lists, links, internal wiki links, and code blocks
+- Bold, italic, headings, bullet lists, links, internal wiki links, image uploads, and code blocks
 - Full-text search across page titles and page content
 - SQLite storage
 - Docker deployment
@@ -29,7 +29,9 @@ The application code can safely live in GitHub.
 Actual wiki content is stored in:
 
 ```text
-./data/wiki.db
+./data/
+├── wiki.db
+└── uploads/
 ```
 
 The `data/` directory and `*.db` files are excluded by `.gitignore`, so your notes are not committed to GitHub.
@@ -57,17 +59,17 @@ Stop the container for the cleanest possible file-level copy:
 
 ```bash
 docker compose stop
-cp data/wiki.db /path/to/backup/wiki.db
+cp -a data/. /path/to/backup/basicwiki-data/
 docker compose start
 ```
 
-For a small personal installation, copying the SQLite database is all that is required to preserve the wiki content.
+The whole `./data` directory is the content backup target. It contains both the SQLite database and uploaded images.
 
 ## Restore
 
 ```bash
 docker compose down
-cp /path/to/backup/wiki.db data/wiki.db
+cp -a /path/to/backup/basicwiki-data/. data/
 docker compose up -d
 ```
 

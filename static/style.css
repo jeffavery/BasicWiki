@@ -285,6 +285,14 @@ a { color: var(--accent); }
     font-family: Consolas, "Courier New", monospace;
 }
 
+.document img,
+.editor img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin: 12px 0;
+}
+
 /*
  * Treat editor paragraphs as lines: Enter starts the next line and an
  * intentionally empty paragraph contributes exactly one blank line.
@@ -343,6 +351,23 @@ a { color: var(--accent); }
 }
 
 .toolbar button:hover { background: #eef3f8; }
+
+.toolbar button:disabled {
+    cursor: wait;
+    opacity: .6;
+}
+
+.upload-status {
+    display: none;
+    padding: 8px 14px;
+    border-bottom: 1px solid var(--border);
+    color: var(--muted);
+    font-size: .9rem;
+}
+
+.upload-status.active { display: block; }
+.upload-status.success { color: #26733a; }
+.upload-status.error-text { color: var(--danger); }
 
 .editor {
     min-height: 430px;
