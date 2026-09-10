@@ -86,11 +86,12 @@
         <button class="button" id="upload-file-btn" type="button">Upload a File</button>
         <div id="file-upload-status" class="dialog-status" role="status" aria-live="polite"></div>
         <div id="uploaded-file-results" class="wiki-link-results"></div>
+        <button class="button primary" id="apply-file-link-btn" type="button" disabled>Apply File Link</button>
         <button class="button" value="cancel">Cancel</button>
     </form>
 </dialog>
 {% endblock %}
 
 {% block scripts %}
-<script src="{{ url_for('static', filename='editor.js', v='file-uploads-1') }}"></script>
+<script src="{{ url_for('static', filename='editor.js', v='file-uploads-2') }}"></script>
 {% endblock %}

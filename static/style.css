@@ -458,6 +458,11 @@ dialog::backdrop {
 }
 
 .wiki-link-item:hover { background: #f3f6fa; }
+.wiki-link-item.selected {
+    border-color: var(--accent);
+    background: #eaf2ff;
+    box-shadow: 0 0 0 2px var(--accent);
+}
 
 @media (max-width: 920px) {
     .section-grid { grid-template-columns: repeat(2, 1fr); }
@@ -560,6 +565,10 @@ html[data-theme="dark"] .page-row:hover,
 html[data-theme="dark"] .wiki-link-item:hover,
 html[data-theme="dark"] .toolbar button:hover {
     background: #2c3a50;
+}
+
+html[data-theme="dark"] .wiki-link-item.selected {
+    background: #304766;
 }
 
 html[data-theme="dark"] .error {

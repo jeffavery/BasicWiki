@@ -50,7 +50,9 @@
     const fileInput = document.getElementById("file-input");
     const fileResults = document.getElementById("uploaded-file-results");
     const fileStatus = document.getElementById("file-upload-status");
+    const applyFileLinkButton = document.getElementById("apply-file-link-btn");
     let linkRange = null;
+    let selectedFile = null;
 
     function applyLink(url, fallbackText) {
         linkDialog.close();
@@ -71,6 +73,8 @@
             ? selection.getRangeAt(0).cloneRange() : null;
         linkUrl.value = "";
         fileStatus.textContent = "";
+        selectedFile = null;
+        applyFileLinkButton.disabled = true;
         linkDialog.showModal();
         await loadFiles();
         linkUrl.focus();
@@ -82,6 +86,10 @@
 
     document.getElementById("upload-file-btn").addEventListener("click", () => fileInput.click());
 
+    applyFileLinkButton.addEventListener("click", () => {
+        if (selectedFile) applyLink(selectedFile.url, selectedFile.name);
+    });
+
     fileInput.addEventListener("change", async () => {
         const file = fileInput.files[0];
         if (!file) return;
@@ -92,8 +100,8 @@
             const response = await fetch("/api/uploads/files", { method: "POST", body });
             const result = await response.json();
             if (!response.ok) throw new Error(result.error || "File upload failed.");
-            fileStatus.textContent = "File uploaded. Select it below.";
-            await loadFiles();
+            fileStatus.textContent = "File uploaded and selected.";
+            await loadFiles(result.name);
         } catch (error) {
             fileStatus.textContent = error.message;
         } finally {
@@ -101,7 +109,7 @@
         }
     });
 
-    async function loadFiles() {
+    async function loadFiles(selectName = null) {
         const response = await fetch("/api/uploads/files");
         const result = await response.json();
         fileResults.innerHTML = "";
@@ -114,8 +122,15 @@
             button.type = "button";
             button.className = "wiki-link-item";
             button.textContent = file.name;
-            button.addEventListener("click", () => applyLink(file.url, file.name));
+            button.addEventListener("click", () => {
+                fileResults.querySelectorAll(".selected").forEach((item) => item.classList.remove("selected"));
+                button.classList.add("selected");
+                selectedFile = file;
+                applyFileLinkButton.disabled = false;
+                fileStatus.textContent = `Selected: ${file.name}`;
+            });
             fileResults.appendChild(button);
+            if (file.name === selectName) button.click();
         });
     }
 
