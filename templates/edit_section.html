@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Edit {{ section['name'] }} · BasicWiki{% endblock %}
+
+{% block content %}
+<div class="breadcrumb"><a href="{{ url_for('home') }}">Home</a> / <a href="{{ url_for('section', slug=section['slug']) }}">{{ section['name'] }}</a> / Edit Section</div>
+
+<h1>Edit Section</h1>
+
+{% if error %}
+<div class="error">{{ error }}</div>
+{% endif %}
+
+<form method="post" class="edit-form section-edit-form">
+    <label>
+        Name
+        <input type="text" name="name" value="{{ name }}" required autofocus>
+    </label>
+
+    <label>
+        Description
+        <textarea name="description" rows="4">{{ description }}</textarea>
+    </label>
+
+    <p class="muted">Renaming a section updates its web address. Pages in the section are not changed.</p>
+
+    <div class="form-actions">
+        <a class="button" href="{{ url_for('section', slug=section['slug']) }}">Cancel</a>
+        <button class="button primary" type="submit">Save Section</button>
+    </div>
+</form>
+{% endblock %}

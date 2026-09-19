@@ -1,4 +1,6 @@
 data/
+data-backup-*/
+backups/
 *.db
 .env
 __pycache__/

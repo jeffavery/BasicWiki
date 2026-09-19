@@ -317,10 +317,31 @@ a { color: var(--accent); }
 }
 
 .form-row input,
-.form-row select {
+.form-row select,
+.section-edit-form input,
+.section-edit-form textarea {
     display: block;
     margin-top: 6px;
     font-weight: 400;
+}
+
+.section-edit-form {
+    max-width: 720px;
+}
+
+.section-edit-form label {
+    display: block;
+    margin: 20px 0;
+    font-weight: 700;
+}
+
+.section-edit-form input,
+.section-edit-form textarea {
+    display: block;
+    width: 100%;
+    margin-top: 6px;
+    font-weight: 400;
+    resize: vertical;
 }
 
 .editor-wrap {

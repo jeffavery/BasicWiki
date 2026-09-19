@@ -152,6 +152,25 @@ def unique_slug(title, page_id=None):
         n += 1
 
 
+def unique_section_slug(name, section_id=None):
+    base = slugify(name)
+    slug = base
+    n = 2
+    db = get_db()
+    while True:
+        if section_id is None:
+            row = db.execute("SELECT id FROM sections WHERE slug = ?", (slug,)).fetchone()
+        else:
+            row = db.execute(
+                "SELECT id FROM sections WHERE slug = ? AND id != ?",
+                (slug, section_id),
+            ).fetchone()
+        if row is None:
+            return slug
+        slug = f"{base}-{n}"
+        n += 1
+
+
 def sanitize_html(value):
     value = value or ""
     cleaned = bleach.clean(
@@ -280,6 +299,42 @@ def section(slug):
     ).fetchall()
 
     return render_template("section.html", section=sec, pages=pages)
+
+
+@app.route("/section/<slug>/edit", methods=["GET", "POST"])
+def edit_section(slug):
+    db = get_db()
+    sec = db.execute("SELECT * FROM sections WHERE slug = ?", (slug,)).fetchone()
+    if sec is None:
+        abort(404)
+
+    name = request.form.get("name", "").strip() if request.method == "POST" else sec["name"]
+    description = (
+        request.form.get("description", "").strip()
+        if request.method == "POST"
+        else sec["description"]
+    )
+    error = None
+
+    if request.method == "POST":
+        if not name:
+            error = "Section name is required."
+        else:
+            new_slug = unique_section_slug(name, section_id=sec["id"])
+            db.execute(
+                "UPDATE sections SET slug = ?, name = ?, description = ? WHERE id = ?",
+                (new_slug, name, description, sec["id"]),
+            )
+            db.commit()
+            return redirect(url_for("section", slug=new_slug))
+
+    return render_template(
+        "edit_section.html",
+        section=sec,
+        name=name,
+        description=description,
+        error=error,
+    )
 
 
 @app.route("/page/<slug>")

@@ -9,7 +9,10 @@
         <h1>{{ section['name'] }}</h1>
         <p>{{ section['description'] }}</p>
     </div>
-    <a class="button primary" href="{{ url_for('new_page', section=section['slug']) }}">New {{ section['name'] }} Page</a>
+    <div class="page-actions">
+        <a class="button" href="{{ url_for('edit_section', slug=section['slug']) }}">Edit Section</a>
+        <a class="button primary" href="{{ url_for('new_page', section=section['slug']) }}">New {{ section['name'] }} Page</a>
+    </div>
 </div>
 
 {% if pages %}
